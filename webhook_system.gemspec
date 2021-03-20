@@ -18,29 +18,10 @@ Gem::Specification.new do |gem|
   gem.executables = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   gem.require_paths = ['lib']
 
-  gem.post_install_message = %q{
-    ## Upgrading
-
-    If you are upgrading from <= 2.3.1 into >= 2.4, then you must run a migration to rename the `encrypt` column.
-    This rename was required for adding support for Rails 7.
-
-    You can use this migration.
-
-    ```ruby
-    # db/migrate/20220427113942_rename_encrypt_on_webhook_subscriptions.rb
-    class RenameEncryptOnWebhookSubscriptions < ActiveRecord::Migration[7.0]
-      def change
-        rename_column :webhook_subscriptions, :encrypt, :encrypted
-      end
-    end
-    ```
-  }
-
-  gem.required_ruby_version = '> 2.7.0'
-  gem.add_runtime_dependency 'activesupport', '> 5.0', '< 7.2'
-  gem.add_runtime_dependency 'activerecord', '> 5.0', '< 7.2'
-  gem.add_runtime_dependency 'activejob', '> 5.0', '< 7.2'
-  gem.add_runtime_dependency 'faraday', '> 0.9'
+  gem.add_runtime_dependency 'activesupport', '> 3.2'#, '< 5.0' # have to drop support for ruby 2.1 if we enable 5.0
+  gem.add_runtime_dependency 'activerecord', '> 3.2'#, '< 5.0' # have to drop support for ruby 2.1 if we enable 5.0
+  gem.add_runtime_dependency 'activejob'
+  gem.add_runtime_dependency 'faraday', '~> 1.3'
   gem.add_runtime_dependency 'faraday-encoding', '>= 0.0.2', '< 1.0'
   gem.add_runtime_dependency 'ph_model'
   gem.add_runtime_dependency 'validate_url', '~> 1.0'
