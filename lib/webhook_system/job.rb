@@ -100,7 +100,7 @@ module WebhookSystem
         # use Faraday::Encoding middleware
         faraday.response :encoding
         faraday.adapter Faraday.default_adapter
-        if subscription.basic_auth?? && subscription.username.present? && subscription.password.present?
+        if subscription.basic_auth? && subscription.username.present? && subscription.password.present?
           faraday.request :basic_auth, subscription.username, subscription.password
         end
       end
