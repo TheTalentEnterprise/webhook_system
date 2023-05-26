@@ -10,6 +10,10 @@ module WebhookSystem
         @code = code
         @error_message = error_message
       end
+
+      def code
+        @code
+      end
     end
 
     # Represents response for an exception we get when doing Faraday http call
