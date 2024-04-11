@@ -19,7 +19,7 @@ module WebhookSystem
     def self.construct(subscription, event, request, response)
       request_info = {
         'event' => event,
-        'headers' => request.headers.to_hash,
+        'headers' => request.headers.to_hash.except('Authorization'),
         'body' => request.body.truncate(MAX_JSON_ATTRIBUTE_SIZE),
         'url' => request.path,
       }
