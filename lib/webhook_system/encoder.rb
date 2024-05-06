@@ -10,9 +10,9 @@ module WebhookSystem
     # @return [String] The encoded string payload (its a JSON string)
     def self.encode(secret_string, payload, format:)
       response_hash = Payload.encode(payload, secret: secret_string, format: format)
-      payload_string = JSON.generate(response_hash)
-      signature = hub_signature(payload_string, secret_string)
-      [payload_string, { 'X-Hub-Signature' => signature, 'Content-Type' => content_type_for_format(format) }]
+      payload_json = JSON.parse(JSON.generate(response_hash))
+      signature = hub_signature(payload_json, secret_string)
+      [payload_json, { 'X-Hub-Signature' => signature, 'Content-Type' => content_type_for_format(format) }]
     end
 
     # Given a secret string, and an encrypted payload, unwrap it, bas64 decode it
