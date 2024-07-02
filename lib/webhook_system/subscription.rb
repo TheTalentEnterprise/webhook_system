@@ -1,7 +1,7 @@
 module WebhookSystem
 
   # This is the model encompassing the actual record of a webhook subscription
-  class Subscription < ActiveRecord::Base
+  class Subscription < ApplicationRecord
     self.table_name = 'webhook_subscriptions'
 
     belongs_to :account if defined?(Account)
