@@ -1,21 +1,41 @@
+require:
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-performance
+
 inherit_from:
- - .rubocop.hound.yml
+  - .rubocop_todo.yml
+
+Rails:
+  Enabled: true
 
 AllCops:
+  NewCops: enable
   Exclude:
     - '*.gemspec'
     - 'Gemfile'
+    - vendor/bundle/ruby/**/*
+
+RSpec/NotToNot:
+  SupportedStyles: to_not
+  # disable because an error is being raised
+  Enabled: false
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
 
 Style/Lambda:
   Enabled: false
 
-Style/EmptyLinesAroundClassBody:
+Layout/EmptyLinesAroundClassBody:
   Enabled: false
 
-Style/EmptyLinesAroundModuleBody:
+Layout/EmptyLinesAroundModuleBody:
   Enabled: false
 
-Style/EmptyLinesAroundMethodBody:
+Layout/EmptyLinesAroundMethodBody:
   Enabled: false
 
 Style/ClassCheck:
@@ -25,7 +45,7 @@ Style/ClassCheck:
 Style/StringLiterals:
   Enabled: false
 
-Style/FileName:
+Naming/FileName:
   Enabled: false
 
 Style/RedundantException:
@@ -37,12 +57,8 @@ Style/SignalException:
 Style/BlockDelimiters:
   Enabled: false
 
-Style/CollectionMethods:
-  PreferredMethods:
-    detect: find
-
 # Github's PR width is 120 characters
-Metrics/LineLength:
+Layout/LineLength:
   Max: 120
   AllowURI: true
   Exclude:
@@ -57,3 +73,24 @@ Metrics/AbcSize:
     conditions.
   Enabled: true
   Max: 30
+
+Metrics/BlockLength:
+  Max: 25
+  AllowedMethods:
+    - context
+    - describe
+    - define
+
+Rails/RakeEnvironment:
+  Exclude:
+    - 'Rakefile'
+
+Rails/ApplicationJob:
+  Exclude:
+    - 'lib/webhook_system/job.rb'
+
+Rails/ApplicationRecord:
+  Exclude:
+    - 'lib/webhook_system/event_log.rb'
+    - 'lib/webhook_system/subscription.rb'
+    - 'lib/webhook_system/subscription_topic.rb'

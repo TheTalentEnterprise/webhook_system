@@ -1,5 +1,21 @@
 # Change Log
 
+## [v2.4.0](https://github.com/payrollhero/webhook_system/tree/v2.4.0) (2022-05-02)
+[Full Changelog](https://github.com/payrollhero/webhook_system/compare/v2.3.1...v2.4.0)
+
+* Rails 7.0 Official support.
+* Please read Upgrade notes, a migration is required to rename encrypt column to encrypted.
+
+## [v2.3.1](https://github.com/payrollhero/webhook_system/tree/v2.3.1) (2022-04-27)
+[Full Changelog](https://github.com/payrollhero/webhook_system/compare/v2.3.0...v2.3.1)
+
+* Rails 6.1 Official support.
+
+## [v2.3.0](https://github.com/payrollhero/webhook_system/tree/v2.3.0) (2021-08-xx)
+[Full Changelog](https://github.com/payrollhero/webhook_system/compare/v2.2.0...v2.3.0)
+
+* Add ability to launch inline jobs instead of making external HTTP calls to another service.
+
 ## [v2.2.0](https://github.com/payrollhero/webhook_system/tree/v2.2.0) (2019-11-07)
 [Full Changelog](https://github.com/payrollhero/webhook_system/compare/v2.1.6...v2.2.0)
 

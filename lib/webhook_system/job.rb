@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module WebhookSystem
 
   # This is the ActiveJob in charge of actually sending each event
@@ -5,7 +7,7 @@ module WebhookSystem
 
     # Exception class around non 200 responses
     class RequestFailed < RuntimeError
-      def initialize(message, code, error_message=nil)
+      def initialize(message, code, error_message = nil)
         super(message)
         @code = code
         @error_message = error_message
@@ -36,7 +38,22 @@ module WebhookSystem
     end
 
     def perform(subscription, event)
-      self.class.post(subscription, event)
+      if subscription.url.match?(/^https?:/)
+        self.class.post(subscription, event)
+      elsif (match_data = subscription.url.match(/^inline:(.*)/)).present?
+        self.class.call_inline(match_data[1], subscription, event)
+      else
+        raise RuntimeError, "unknown prefix url for subscription"
+        ensure_success(ErrorResponse.new(exception), :INVALID, subscription)
+      end
+    end
+
+    def self.call_inline(job_name, subscription, event)
+      # subscription url could contain a job name, or a ruby class/method call
+      # how do we sanitize this not to be allowing hackers to call arbitrary code via
+      # a subscription? maybe a prefix is enough?
+      job_class = const_get("WebhookSystem::Inline#{job_name}Job")
+      job_class.perform_now(subscription, event)
     end
 
     def self.post(subscription, event)
@@ -46,8 +63,8 @@ module WebhookSystem
       response =
         begin
           client.builder.build_response(client, request)
-        rescue RuntimeError => exception
-          ErrorResponse.new(exception)
+        rescue RuntimeError => e
+          ErrorResponse.new(e)
         end
 
       log_response(subscription, event, request, response)
@@ -57,16 +74,17 @@ module WebhookSystem
     def self.ensure_success(response, http_method, subscription)
       url = subscription.url
       status = response.status
-      unless (200..299).cover? status
-        if subscription.respond_to?(:account_id)
-          account_info = subscription.account_info
-          inner = "failed for account #{account_info} with"
-        else
-          inner = "failed with"
-        end
-        text = "#{http_method} request to #{url} #{inner} code: #{status} and error #{response.body}"
-        raise RequestFailed.new(text, status, response.body)
+      return if (200..299).cover? status
+
+      if subscription.respond_to?(:account_id)
+        account_info = subscription.account_info
+        inner = "failed for account #{account_info} with"
+      else
+        inner = "failed with"
       end
+      text = "#{http_method} request to #{url} #{inner} code: #{status} and error #{response.body}"
+      raise RequestFailed.new(text, status, response.body)
+
     end
 
     def self.build_request(client, subscription, event)
@@ -91,7 +109,7 @@ module WebhookSystem
       # We want the even log record to always be created, so we check if we are running inside the transaction,
       # if we are - we create the record in a separate thread. New Thread means a new DB connection and
       # ActiveRecord transactions are per connection, which gives us the "transaction jailbreak".
-      if ActiveRecord::Base.connection.open_transactions == 0
+      if ActiveRecord::Base.connection.open_transactions.zero?
         event_log.save!
       else
         Thread.new { event_log.save! }.join

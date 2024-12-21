@@ -1,7 +1,11 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
+require 'minitest' # required for Rails 6.1
 
 describe 'dispatching events', aggregate_failures: true, db: true do
   let(:hook_url) { "http://lvh.me/hook1" }
+
   describe 'dispatching' do
     let!(:subscription1) do
       create(:webhook_subscription, :active, :encrypted, :with_topics, url: hook_url, topics: ['other_event'])
@@ -18,14 +22,14 @@ describe 'dispatching events', aggregate_failures: true, db: true do
         end
 
         def payload_attributes
-          [
-            :name,
-            :age,
+          %i[
+            name
+            age
           ]
         end
 
         attribute :name, type: String
-        attribute :age, type: Fixnum
+        attribute :age, type: Integer
 
         validates :name, presence: true
         validates :age, presence: true
@@ -68,12 +72,12 @@ describe 'dispatching events', aggregate_failures: true, db: true do
 
         error_message = "POST request to #{hook_url} failed with code: 400 and error I don't like you"
         expect {
-          expect {
-            perform_enqueued_jobs do
+          perform_enqueued_jobs do
+            expect {
               WebhookSystem::Subscription.dispatch event
-            end
-          }.to change { subscription1.event_logs.count }.by(1)
-        }.to raise_exception(WebhookSystem::Job::RequestFailed, error_message)
+            }.to raise_error(WebhookSystem::Job::RequestFailed, error_message)
+          end
+        }.to change { subscription1.event_logs.count }.by(1)
 
         expect(stub).to have_been_requested.once
 
@@ -86,19 +90,19 @@ describe 'dispatching events', aggregate_failures: true, db: true do
     end
 
     describe 'exception occurs during the delivery' do
-      let(:upstream_error) { %r(RuntimeError\nexception message\n) }
+      let(:upstream_error) { %r{RuntimeError\nexception message\n} }
+
       it 'fires the jobs' do
         subscription1_hook_stub.to_raise(RuntimeError.new('exception message'))
 
         error_message = /POST request to #{hook_url} failed with code: 0 and error .*RuntimeError.*/
         expect {
-          expect {
-            perform_enqueued_jobs do
+          perform_enqueued_jobs do
+            expect {
               WebhookSystem::Subscription.dispatch event
-            end
-          }.to change { subscription1.event_logs.count }.by(1)
-        }.to raise_exception(WebhookSystem::Job::RequestFailed, error_message)
-
+            }.to raise_error(WebhookSystem::Job::RequestFailed, error_message)
+          end
+        }.to change { subscription1.event_logs.count }.by(1)
         log = subscription1.event_logs.last
 
         expect(log.status).to eq(0)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'bundler/gem_tasks'
 
 require 'rubygems/tasks'
@@ -18,23 +20,21 @@ task :styleguide do
   require 'faraday'
   require 'pry'
   base = "https://raw.githubusercontent.com/payrollhero/styleguide/master/"
-  files = %w{
+  files = %w[
     .rubocop.hound.yml
     .rubocop.yml
     .codeclimate.yml
-  }
+  ]
   files.each do |file|
     puts "Fetching #{file} ..."
     url = "#{base}#{file}"
     rsp = Faraday.get(url)
     unless rsp.status == 200
-      $stderr.puts "failing fetching: #{url}"
-      $stderr.puts "  response: #{rsp.status}: #{rsp.body}"
+      warn "failing fetching: #{url}"
+      warn "  response: #{rsp.status}: #{rsp.body}"
       exit 1
     end
-    File.open(file, "w") do |fh|
-      fh.write(rsp.body)
-    end
+    File.write(file, rsp.body)
   end
 end
 

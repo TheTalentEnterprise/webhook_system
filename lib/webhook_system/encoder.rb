@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module WebhookSystem
 
   # Class in charge of encoding and decoding encrypted payload
@@ -26,9 +28,7 @@ module WebhookSystem
       format = format_for_content_type(headers.fetch('Content-Type'))
 
       payload_signature = hub_signature(payload_string, secret_string)
-      if signature && signature != payload_signature
-        raise DecodingError, 'signature mismatch'
-      end
+      raise DecodingError, 'signature mismatch' if signature && signature != payload_signature
 
       Payload.decode(payload_string, secret: secret_string, format: format)
     end
@@ -39,7 +39,7 @@ module WebhookSystem
       def content_type_format_map
         {
           'base64+aes256' => 'application/json; base64+aes256',
-          'json' => 'application/json'
+          'json' => 'application/json',
         }
       end
 
@@ -71,7 +71,7 @@ module WebhookSystem
       end
 
       def decode(response_body, secret:, format:)
-        payload = JSON.load(response_body)
+        payload = JSON.parse(response_body)
 
         case format
         when 'base64+aes256'
@@ -86,7 +86,7 @@ module WebhookSystem
       private
 
       def encode_aes(payload, secret)
-        cipher = OpenSSL::Cipher::AES256.new(:CBC)
+        cipher = OpenSSL::Cipher.new('aes-256-cbc')
         cipher.encrypt
         iv = cipher.random_iv
         cipher.key = key_from_secret(iv, secret)
@@ -103,13 +103,13 @@ module WebhookSystem
         encoded = Base64.decode64(payload['payload'])
         iv = Base64.decode64(payload['iv'])
 
-        cipher = OpenSSL::Cipher::AES256.new(:CBC)
+        cipher = OpenSSL::Cipher.new('aes-256-cbc')
         cipher.decrypt
         cipher.iv = iv
         cipher.key = key_from_secret(iv, secret)
         decoded = cipher.update(encoded) + cipher.final
 
-        JSON.load(decoded)
+        JSON.parse(decoded)
       rescue OpenSSL::Cipher::CipherError
         raise DecodingError, 'Decoding Failed, probably mismatched secret'
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe WebhookSystem::Encoder, aggregate_failures: true do
@@ -56,5 +58,4 @@ describe WebhookSystem::Encoder, aggregate_failures: true do
       }.to raise_exception(WebhookSystem::DecodingError, 'signature mismatch')
     end
   end
-
 end

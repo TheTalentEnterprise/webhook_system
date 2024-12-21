@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module WebhookSystem
 
   # This is the class meant to be used as the base class for any Events sent through the Webhook system
@@ -12,13 +14,17 @@ module WebhookSystem
     attr_reader :event_id
 
     def event_name
+      # :nocov:
       mesg = "class #{self.class.name} must implement abstract method `#{self.class.name}#event_name()'."
       raise with_caller_backtrace(RuntimeError.new(mesg), 2)
+      # :nocov:
     end
 
     def payload_attributes
+      # :nocov:
       mesg = "class #{self.class.name} must implement abstract method `#{self.class.name}#payload_attributes()'."
       raise with_caller_backtrace(RuntimeError.new(mesg), 2)
+      # :nocov:
     end
 
     def as_json
@@ -35,25 +41,28 @@ module WebhookSystem
     end
 
     def self.key_is_reserved?(key)
-      key.to_s.in? %w(event event_id)
+      key.to_s.in? %w[event event_id]
     end
 
     def self.dispatch(args)
-      WebhookSystem::Subscription.global.dispatch self.build(args)
+      WebhookSystem::Subscription.global.dispatch build(args)
     end
 
     private
 
-    def with_caller_backtrace(exception, backtrack=2)
-      exception.set_backtrace(caller[backtrack..-1])
+    def with_caller_backtrace(exception, backtrack = 2)
+      # :nocov:
+      exception.set_backtrace(caller[backtrack..])
       exception
+      # :nocov:
     end
 
     def validate_attribute_name(key)
-      if self.class.key_is_reserved?(key)
-        message = "#{self.class.name} should not be defining an attribute named #{key} since its reserved"
-        raise ArgumentError, message
-      end
+      return unless self.class.key_is_reserved?(key)
+
+      message = "#{self.class.name} should not be defining an attribute named #{key} since its reserved"
+      raise ArgumentError, message
+
     end
 
     def each_attribute(&block)
@@ -65,7 +74,9 @@ module WebhookSystem
       when Hash
         payload_attributes.each(&block)
       else
+        # :nocov:
         raise ArgumentError, "don't know how to deal with payload_attributes: #{payload_attributes.inspect}"
+        # :nocov:
       end
     end
   end

@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe "Integration", aggregate_failures: true, db: true do
   let!(:subscription1) do
     create(:webhook_subscription, :active, :encrypted, :with_topics, url: 'http://lvh.me/hook1', topics: ['other_event'])
   end
-
   let!(:subscription2) do
     create(:webhook_subscription, :active, :plain, :with_topics, url: 'http://lvh.me/hook2', topics: ['other_event'])
   end
@@ -16,14 +17,14 @@ describe "Integration", aggregate_failures: true, db: true do
       end
 
       def payload_attributes
-        [
-          :name,
-          :age,
+        %i[
+          name
+          age
         ]
       end
 
       attribute :name, type: String
-      attribute :age, type: Fixnum
+      attribute :age, type: Integer
 
       validates :name, presence: true
       validates :age, presence: true
@@ -32,23 +33,23 @@ describe "Integration", aggregate_failures: true, db: true do
 
   let(:event) { event_class.build(name: 'John', age: 21) }
 
-  def handle_webhook(to:)
-    stub_request(:post, to).with(body: /.*/).to_return do |request|
-      yield(request)
-      {
-        status: [200, 'OK'],
-        body: 'Success',
-        headers: { 'Hello' => 'World' }
-      }
-    end
-  end
-
   let(:expected_payload) do
     {
       'event_name' => 'other_event',
       'name' => 'John',
       'age' => 21,
     }
+  end
+
+  def handle_webhook(to:)
+    stub_request(:post, to).with(body: /.*/).to_return do |request|
+      yield(request)
+      {
+        status: [200, 'OK'],
+        body: 'Success',
+        headers: { 'Hello' => 'World' },
+      }
+    end
   end
 
   example 'encrypted and plain payloads' do
@@ -73,6 +74,6 @@ describe "Integration", aggregate_failures: true, db: true do
       WebhookSystem::Subscription.dispatch event
     end
 
-    expect(hooks_called).to match_array([:hook1, :hook2])
+    expect(hooks_called).to match_array(%i[hook1 hook2])
   end
 end

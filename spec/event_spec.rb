@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe WebhookSystem, aggregate_failures: true do
@@ -14,9 +16,9 @@ describe WebhookSystem, aggregate_failures: true do
   end
 
   let(:test_payload_attributes) do
-    [
-      :widget,
-      :name,
+    %i[
+      widget
+      name
     ]
   end
 
@@ -127,9 +129,9 @@ describe WebhookSystem, aggregate_failures: true do
 
       example do
         expect(event1.event_id).to be_present
-        expect(event1.event_id).to be_kind_of(String)
+        expect(event1.event_id).to be_a(String)
         expect(event1.event_id).to match(guid_regex)
-        expect(event1.event_id).not_to eq(event2.event_id)
+        expect(event1.event_id).to_not eq(event2.event_id)
       end
     end
   end
